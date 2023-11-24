@@ -1,0 +1,51 @@
+@startuml
+title TaskControllerAdapter Sequence Diagram
+
+actor Client
+participant "TaskControllerAdapter" as Controller
+database "TaskRepositoryPort" as Repository
+
+Client -> Controller: HTTP POST /api/v1/task
+activate Controller
+Controller -> Repository: saveTask(task)
+activate Repository
+Repository --> Controller: taskEntity
+deactivate Repository
+Controller --> Client: TaskResponseDto
+deactivate Controller
+
+Client -> Controller: HTTP GET /api/v1/task
+activate Controller
+Controller -> Repository: allTasks
+activate Repository
+Repository --> Controller: taskEntities
+deactivate Repository
+Controller --> Client: List<TaskResponseDto>
+deactivate Controller
+
+Client -> Controller: HTTP PUT /api/v1/task/{taskDescription}/priority
+activate Controller
+Controller -> Repository: allTasks
+activate Repository
+Repository --> Controller: taskEntities
+deactivate Repository
+Controller -> Repository: saveTask(updatedTaskEntity)
+activate Repository
+Repository --> Controller: updatedTaskEntity
+deactivate Repository
+Controller --> Client: TaskResponseDto
+deactivate Controller
+
+Client -> Controller: HTTP PUT /api/v1/task/{taskDescription}/complete
+activate Controller
+Controller -> Repository: allTasks
+activate Repository
+Repository --> Controller: taskEntities
+deactivate Repository
+Controller -> Repository: saveTask(updatedTaskEntity)
+activate Repository
+Repository --> Controller: updatedTaskEntity
+deactivate Repository
+Controller --> Client: TaskResponseDto
+deactivate Controller
+@enduml

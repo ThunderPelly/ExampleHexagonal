@@ -1,0 +1,34 @@
+@startuml
+title UserControllerAdapter Sequence Diagram
+
+actor Client
+participant "UserControllerAdapter" as Controller
+participant "UserUseCase" as UseCase
+
+Client -> Controller: HTTP POST /api/v1/user
+activate Controller
+Controller -> UseCase: saveUser(user)
+activate UseCase
+UseCase --> Controller: userEntity
+deactivate UseCase
+Controller --> Client: UserResponseDto
+deactivate Controller
+
+Client -> Controller: HTTP GET /api/v1/user
+activate Controller
+Controller -> UseCase: allUsers
+activate UseCase
+UseCase --> Controller: userEntities
+deactivate UseCase
+Controller --> Client: List<UserResponseDto>
+deactivate Controller
+
+Client -> Controller: HTTP GET /api/v1/user/task
+activate Controller
+Controller -> UseCase: getUserByUsername(userName)
+activate UseCase
+UseCase --> Controller: userEntity
+deactivate UseCase
+Controller --> Client: List<TaskResponseDto>
+deactivate Controller
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+title UserService Sequence Diagram
+
+
+actor Client
+
+participant "UserService" as Service
+participant "User" as User
+participant "UserRepositoryPort" as Repository
+participant "PlatformTransactionManager" as TransactionManager
+
+Client -> Service: createUser(userRequestDto)
+activate Service
+
+Service --> Service: validate userName
+Service --> Service: set defaultUserRole
+Service --> Service: synchronize userCreationLock
+activate TransactionManager
+Service -> TransactionManager: getTransaction(transactionDefinition)
+TransactionManager -> TransactionManager: createTransactionDefinition()
+TransactionManager --> Service: transactionDefinition
+deactivate TransactionManager
+
+Service --> Service: createUniqueUserName(userName)
+activate Service
+
+Service --> Service: baseUsername
+Service --> Service: newUsername, suffix
+Service --> Repository: getUserByUsername(newUsername)
+deactivate Service
+
+Service -> User: User(newUsername, userRole)
+activate User
+
+Service --> Repository: saveUser(entity)
+deactivate User
+deactivate Repository
+activate TransactionManager
+TransactionManager --> TransactionManager: commit(transactionStatus)
+deactivate TransactionManager
+
+Service --> Service: return user.toResponseDto()
+deactivate Service
+
+Client --> Service: getAllUsers()
+activate Service
+Service --> Repository: allUsers
+deactivate Service
+Service --> User: toDomain()
+Service --> Service: toResponseDto()
+Service --> Client: List<UserResponseDto>
+deactivate Service
+
+Client --> Service: getUserTasks(userName)
+activate Service
+Service --> Repository: getUserByUsername(userName)
+deactivate Service
+Service --> User: assignedTasks
+Service --> Service: toDomain()
+Service --> Service: toResponseDto()
+Service --> Client: List<TaskResponseDto>
+deactivate Service
+@enduml

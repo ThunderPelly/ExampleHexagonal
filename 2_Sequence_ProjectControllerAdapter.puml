@@ -1,0 +1,38 @@
+@startuml
+title ProjectControllerAdapter Sequence Diagram
+
+actor Client
+participant "ProjectControllerAdapter" as Controller
+database "ProjectRepositoryPort" as Repository
+
+Client -> Controller: HTTP POST /api/v1/project
+activate Controller
+Controller -> Repository: saveProject(project)
+activate Repository
+Repository --> Controller: projectEntity
+deactivate Repository
+Controller --> Client: ProjectResponseDto
+deactivate Controller
+
+Client -> Controller: HTTP GET /api/v1/project
+activate Controller
+Controller -> Repository: allProjects
+activate Repository
+Repository --> Controller: projectEntities
+deactivate Repository
+Controller --> Client: List<ProjectResponseDto>
+deactivate Controller
+
+Client -> Controller: HTTP PUT /api/v1/project/{projectId}/add-task
+activate Controller
+Controller -> Repository: getProjectById(projectId)
+activate Repository
+Repository --> Controller: projectEntity
+deactivate Repository
+Controller -> Repository: saveProject(projectEntity)
+activate Repository
+Repository --> Controller: updatedProjectEntity
+deactivate Repository
+Controller --> Client: ProjectResponseDto
+deactivate Controller
+@enduml
