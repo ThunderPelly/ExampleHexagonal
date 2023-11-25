@@ -8,6 +8,7 @@ import com.example.hexagonal.domain.mapper.toDomain
 import com.example.hexagonal.domain.mapper.toEntity
 import com.example.hexagonal.domain.mapper.toResponseDto
 import com.example.hexagonal.domain.model.User
+import com.example.hexagonal.domain.model.UserName
 import com.example.hexagonal.domain.model.UserRole
 import com.example.hexagonal.port.`in`.UserUseCase
 import com.example.hexagonal.port.out.TransactionalPort
@@ -52,15 +53,17 @@ class UserService(private val userRepositoryPort: UserRepositoryPort, private va
 
             try {
                 // Erstellen eines eindeutigen Benutzernamens
-                val newUserName = createUniqueUserName(userRequestDto.userName)
+                val uniqueUserName = createUniqueUserName(userRequestDto.userName)
 
                 // Benutzer erstellen und im Repository speichern
-                val user = userRepositoryPort.saveUser(User(userName = newUserName, role = userRole).toEntity())
+                val user = User(userName = uniqueUserName, role = userRole)
+
+                userRepositoryPort.saveUser(user.toEntity())
 
                 // Transaktion erfolgreich abschliessen
                 transactionalPort.commitTransaction()
 
-                return user.toDomain().toResponseDto()
+                return user.toResponseDto()
             } catch (e: Exception) {
                 // Transaktion rückgängig machen und Ausnahme weitergeben
                 transactionalPort.rollbackTransaction()
@@ -77,19 +80,17 @@ class UserService(private val userRepositoryPort: UserRepositoryPort, private va
      * @param userName Der ursprüngliche Benutzername.
      * @return Ein eindeutiger Benutzername.
      */
-    fun createUniqueUserName(userName: String): String {
-        // Begrenze die Länge des Basisbenutzernamens auf maximal 5 Zeichen
-        val baseUsername = userName.substring(0, min(userName.length, usernameMaxLength))
-        var newUsername = baseUsername
+    fun createUniqueUserName(userName: String?): UserName {
+        var newUserName = UserName(userName)
         var suffix = 0
 
         // Überprüfe, ob der Benutzername bereits existiert, und füge ein Suffix hinzu, um die Eindeutigkeit sicherzustellen
-        while (userRepositoryPort.getUserByUsername(newUsername) != null) {
+        while (userRepositoryPort.getUserByUsername(newUserName.value) != null) {
             suffix++
-            newUsername = "$baseUsername$suffix"
+            newUserName = UserName(newUserName.value, suffix)
         }
 
-        return newUsername
+        return newUserName
     }
 
     /**

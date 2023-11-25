@@ -7,14 +7,15 @@ import com.example.hexagonal.adapter.out.persistence.model.UserEntity
 import com.example.hexagonal.domain.model.Project
 import com.example.hexagonal.domain.model.Task
 import com.example.hexagonal.domain.model.User
+import com.example.hexagonal.domain.model.UserName
 
 fun User.toEntity(): UserEntity =
-    UserEntity(userName, role, assignedTasks.map { it.toEntity() }.toMutableList())
+    UserEntity(userName.value, role, assignedTasks.map { it.toEntity() }.toMutableList())
 
 fun User.toResponseDto(): UserResponseDto =
-    UserResponseDto(userName, role)
+    UserResponseDto(userName.value, role)
 
-fun UserEntity.toDomain(): User = User(userName = userName, role = role).apply {
+fun UserEntity.toDomain(): User = User(userName = UserName(userName), role = role).apply {
     assignedTasks.mapTo(assignedTasks) { it.toEntity().toDomain() }
 }
 
