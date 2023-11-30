@@ -14,7 +14,6 @@ import com.example.hexagonal.port.`in`.UserUseCase
 import com.example.hexagonal.port.out.TransactionalPort
 import com.example.hexagonal.port.out.UserRepositoryPort
 import jakarta.transaction.Transactional
-import kotlin.math.min
 
 @UseCase
 class UserService(private val userRepositoryPort: UserRepositoryPort, private val transactionalPort: TransactionalPort) : UserUseCase {

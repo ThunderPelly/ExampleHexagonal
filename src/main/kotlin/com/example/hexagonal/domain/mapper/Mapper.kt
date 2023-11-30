@@ -4,10 +4,7 @@ import com.example.hexagonal.adapter.`in`.model.*
 import com.example.hexagonal.adapter.out.persistence.model.ProjectEntity
 import com.example.hexagonal.adapter.out.persistence.model.TaskEntity
 import com.example.hexagonal.adapter.out.persistence.model.UserEntity
-import com.example.hexagonal.domain.model.Project
-import com.example.hexagonal.domain.model.Task
-import com.example.hexagonal.domain.model.User
-import com.example.hexagonal.domain.model.UserName
+import com.example.hexagonal.domain.model.*
 
 fun User.toEntity(): UserEntity =
     UserEntity(userName.value, role, assignedTasks.map { it.toEntity() }.toMutableList())
@@ -20,12 +17,12 @@ fun UserEntity.toDomain(): User = User(userName = UserName(userName), role = rol
 }
 
 fun Task.toEntity(): TaskEntity =
-    TaskEntity(description, isCompleted, assignedUser?.toEntity(), priority)
+    TaskEntity(description.value, isCompleted, assignedUser?.toEntity(), priority.value)
 
 fun Task.toResponseDto(): TaskResponseDto =
-    TaskResponseDto(description, isCompleted, priority)
+    TaskResponseDto(description.value, isCompleted, priority.value)
 
-fun TaskEntity.toDomain(): Task = Task(description = description, priority = priority, isCompleted = isCompleted)
+fun TaskEntity.toDomain(): Task = Task(description = TaskDescription(description), priority = TaskPriority(priority), isCompleted = isCompleted)
 
 fun Project.toEntity(): ProjectEntity =
     ProjectEntity(projectId, name, tasks.map { it.toEntity() }.toMutableList())

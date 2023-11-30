@@ -8,6 +8,7 @@ import com.example.hexagonal.domain.mapper.toEntity
 import com.example.hexagonal.domain.mapper.toResponseDto
 import com.example.hexagonal.domain.model.Project
 import com.example.hexagonal.domain.model.Task
+import com.example.hexagonal.domain.model.TaskDescription
 import com.example.hexagonal.domain.model.UserRole
 import com.example.hexagonal.port.`in`.ProjectUseCase
 import com.example.hexagonal.port.out.ProjectRepositoryPort
@@ -71,9 +72,8 @@ class ProjectService(private val projectRepositoryPort: ProjectRepositoryPort) :
     override fun addTaskToProject(projectId: UUID?, taskDescription: String?): ProjectResponseDto? {
         // Überprüfen, ob der Projekt-Id nicht null oder leer ist
         require(projectId.isValidUuid()) { projectExceptionMessage }
-        require(!taskDescription.isNullOrBlank()) { descriptionExceptionMessage }
         val project = projectId?.let { projectRepositoryPort.getProjectById(it) }
-        val task = Task(description = taskDescription)
+        val task = Task(description = TaskDescription(taskDescription))
         project?.let {
             it.tasks.add(task.toEntity())
             projectRepositoryPort.saveProject(project)

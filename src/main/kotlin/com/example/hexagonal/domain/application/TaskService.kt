@@ -7,6 +7,7 @@ import com.example.hexagonal.domain.mapper.toDomain
 import com.example.hexagonal.domain.mapper.toEntity
 import com.example.hexagonal.domain.mapper.toResponseDto
 import com.example.hexagonal.domain.model.Task
+import com.example.hexagonal.domain.model.TaskDescription
 import com.example.hexagonal.port.`in`.TaskUseCase
 import com.example.hexagonal.port.out.TaskRepositoryPort
 
@@ -27,9 +28,7 @@ class TaskService(private val taskRepositoryPort: TaskRepositoryPort) : TaskUseC
         // Überprüfen, ob taskRequestDto nicht null ist
         requireNotNull(taskRequestDto) { taskRequestDtoExceptionMessage }
 
-        // Überprüfen, ob der Beschreibung und die Priorität nicht null oder leer ist
-        require(!taskRequestDto.description.isNullOrBlank()) { descriptionExceptionMessage }
-        val task = Task(description = taskRequestDto.description)
+        val task = Task(description = TaskDescription(taskRequestDto.description))
         taskRepositoryPort.saveTask(task.toEntity())
         return task.toResponseDto()
     }
