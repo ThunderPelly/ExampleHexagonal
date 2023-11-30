@@ -6,10 +6,7 @@ import com.example.hexagonal.domain.application.exceptions.InsufficientPermissio
 import com.example.hexagonal.domain.mapper.toDomain
 import com.example.hexagonal.domain.mapper.toEntity
 import com.example.hexagonal.domain.mapper.toResponseDto
-import com.example.hexagonal.domain.model.Project
-import com.example.hexagonal.domain.model.Task
-import com.example.hexagonal.domain.model.TaskDescription
-import com.example.hexagonal.domain.model.UserRole
+import com.example.hexagonal.domain.model.*
 import com.example.hexagonal.port.`in`.ProjectUseCase
 import com.example.hexagonal.port.out.ProjectRepositoryPort
 import org.springframework.stereotype.Service
@@ -19,7 +16,6 @@ import java.util.*
 class ProjectService(private val projectRepositoryPort: ProjectRepositoryPort) : ProjectUseCase {
     private val projectRequestDtoExceptionMessage = "ProjectRequestDto darf nicht null oder leer sein."
     private val projectExceptionMessage = "Die Projekt-Id darf nicht null oder leer sein."
-    private val projectNameExceptionMessage = "Der Projektname darf nicht null oder leer sein."
     private val insufficientPermissionExceptionMessage =
         "Benutzer hat nicht die erforderliche Rolle, um ein Projekt zu erstellen."
     /**
@@ -34,9 +30,7 @@ class ProjectService(private val projectRepositoryPort: ProjectRepositoryPort) :
         if (projectRequestDto != null) {
             // Überprüfen, ob der Benutzer die erforderliche Rolle hat, um ein Projekt zu erstellen
             if(projectRequestDto.role != UserRole.MANAGER) throw InsufficientPermissionException(insufficientPermissionExceptionMessage)
-            // Überprüfen, ob der Projektname nicht null oder leer ist
-            require(!projectRequestDto.name.isNullOrBlank()) { projectNameExceptionMessage }
-            val project = Project(name = projectRequestDto.name)
+            val project = Project(name = ProjectName(projectRequestDto.name))
             projectRepositoryPort.saveProject(project.toEntity())
             return project.toResponseDto()
         } else {

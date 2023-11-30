@@ -25,12 +25,12 @@ fun Task.toResponseDto(): TaskResponseDto =
 fun TaskEntity.toDomain(): Task = Task(description = TaskDescription(description), priority = TaskPriority(priority), isCompleted = isCompleted)
 
 fun Project.toEntity(): ProjectEntity =
-    ProjectEntity(projectId, name, tasks.map { it.toEntity() }.toMutableList())
+    ProjectEntity(projectId, name.value, tasks.map { it.toEntity() }.toMutableList())
 
-fun ProjectEntity.toDomain(): Project = Project(projectId, name).also { project ->
+fun ProjectEntity.toDomain(): Project = Project(projectId, ProjectName(name)).also { project ->
     tasks.mapTo(project.tasks) { it.toDomain() }
 }
 
 
 fun Project.toResponseDto(): ProjectResponseDto =
-    ProjectResponseDto(projectId, name, tasks.map { it.toResponseDto() }.toMutableList())
+    ProjectResponseDto(projectId, name.value, tasks.map { it.toResponseDto() }.toMutableList())
