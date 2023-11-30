@@ -19,7 +19,6 @@ import java.util.*
 class ProjectService(private val projectRepositoryPort: ProjectRepositoryPort) : ProjectUseCase {
     private val projectRequestDtoExceptionMessage = "ProjectRequestDto darf nicht null oder leer sein."
     private val projectExceptionMessage = "Die Projekt-Id darf nicht null oder leer sein."
-    private val descriptionExceptionMessage = "Die Aufgabenbeschreibung  darf nicht null oder leer sein."
     private val projectNameExceptionMessage = "Der Projektname darf nicht null oder leer sein."
     private val insufficientPermissionExceptionMessage =
         "Benutzer hat nicht die erforderliche Rolle, um ein Projekt zu erstellen."
