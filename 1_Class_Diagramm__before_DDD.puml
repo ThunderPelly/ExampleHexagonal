@@ -1,0 +1,294 @@
+@startuml
+skinparam linetype ortho
+skinparam ranksep 50
+
+package "com.example.hexagonal.adapter.in" {
+    class ProjectControllerAdapter {
+        +createProject(projectRequestDto: ProjectRequestDto): ProjectResponseDto?
+        +listProjects(): List<ProjectResponseDto>?
+        +addTaskToProject(projectId: UUID, taskDescription: String): ProjectResponseDto?
+    }
+
+    class TaskControllerAdapter {
+        +createTask(taskRequestDto: TaskRequestDto): TaskResponseDto?
+        +listTasks(): List<TaskResponseDto>?
+        +setTaskPriority(taskDescription: String, priority: Int): TaskResponseDto?
+        +completeTask(taskDescription: String): TaskResponseDto?
+    }
+
+    class UserControllerAdapter {
+        +createUser(userRequestDto: UserRequestDto): UserResponseDto?
+        +listUsers(): List<UserResponseDto>?
+        +getUserTasks(userName: String): List<TaskResponseDto>?
+    }
+
+    class UserTaskControllerAdapter {
+        +assignTaskToUser(userName: String, task: TaskRequestDto): TaskResponseDto?
+    }
+
+    class ProjectRequestDto {
+        +name: String?
+        +role: UserRole?
+    }
+
+    class ProjectResponseDto {
+        +projectId: UUID?
+        +name: String?
+        +tasks: MutableList<TaskResponseDto>?
+    }
+
+    class TaskRequestDto {
+        +description: String?
+    }
+
+    class TaskResponseDto {
+        +description: String?
+        +isCompleted: Boolean?
+        +priority: Int?
+    }
+
+    class UserRequestDto {
+        +userName: String?
+        +role: UserRole?
+    }
+
+    class UserResponseDto {
+        +userName: String?
+        +role: UserRole?
+    }
+}
+
+package "com.example.hexagonal.adapter.out.persistence" {
+    class ProjectRepositoryAdapter {
+        -projects: MutableMap<UUID, ProjectEntity>
+        +saveProject(project: ProjectEntity): ProjectEntity
+        +getProjectById(projectId: UUID): ProjectEntity?
+        +allProjects: MutableMap<UUID, ProjectEntity>
+    }
+
+    class TaskRepositoryAdapter {
+        -tasks: MutableList<TaskEntity>
+        +saveTask(task: TaskEntity): TaskEntity
+        +allTasks: List<TaskEntity>
+    }
+
+    class UserRepositoryAdapter {
+        -users: MutableList<UserEntity>
+        +getUserByUsername(username: String?): UserEntity?
+        +saveUser(userEntity: UserEntity): UserEntity
+        +allUsers: List<UserEntity>
+    }
+}
+
+package "com.example.hexagonal.adapter.out.transaction" {
+    class SpringTransactionalAdapter {
+        -transactionStatus: TransactionStatus
+        +beginTransaction()
+        +commitTransaction()
+        +rollbackTransaction()
+    }
+}
+
+package "com.example.hexagonal.domain.application" {
+    class ProjectService {
+        -projectRequestDtoExceptionMessage: String
+        -projectExceptionMessage: String
+        -descriptionExceptionMessage: String
+        -projectNameExceptionMessage: String
+        -insufficientPermissionExceptionMessage: String
+        +createProject(projectRequestDto: ProjectRequestDto): ProjectResponseDto
+        +getProjects(): List<ProjectResponseDto>?
+        +addTaskToProject(projectId: UUID?, taskDescription: String?): ProjectResponseDto?
+        +isValidUuid(uuid: UUID?): Boolean
+    }
+
+    class TaskService {
+        -taskRequestDtoExceptionMessage: String
+        -descriptionExceptionMessage: String
+        -priorityExceptionMessage: String
+        +createTask(taskRequestDto: TaskRequestDto?): TaskResponseDto?
+        +getAllTasks(): List<TaskResponseDto>?
+        +completeTask(description: String?): TaskResponseDto?
+        +setTaskPriority(description: String?, priority: Int?): TaskResponseDto?
+    }
+
+    class UserService {
+        -userRequestDtoExceptionMessage: String
+        -userNameExceptionMessage: String
+        +userNameMaxLength: Int
+        +defaultUserRole: UserRole
+        -transactionManager: PlatformTransactionManager
+        -userCreationLock: Object
+        +createUser(userRequestDto: UserRequestDto?): UserResponseDto?
+        +createUniqueUserName(userName: String): String
+        +getAllUsers(): List<UserResponseDto>?
+        +getUserTasks(userName: String?): List<TaskResponseDto>?
+    }
+
+    class UserTaskService {
+        +taskRepository: TaskRepository
+        -businessLogicException: String
+        -userNameExceptionMessage: String
+        -userOrTaskExceptionMessage: String
+        -completedTaskExceptionMessage: String
+        +assignTaskToUser(userName: String?, taskDescription: String?): TaskResponseDto?
+        +shouldAssignTask(user: User): Boolean
+        +shouldReassignTask(user: User): Boolean
+    }
+}
+
+package "com.example.hexagonal.domain.application.exceptions" {
+    class InsufficientPermissionException {
+        +message: String
+    }
+}
+
+package "com.example.hexagonal.domain.mapper" {
+    class MapperFunctions {
+        // Omitted for brevity
+    }
+}
+
+package "com.example.hexagonal.domain.model" {
+    class Project {
+        -projectId: UUID
+        -name: String
+        +tasks: MutableList<Task>
+    }
+
+    class Task {
+        -taskId: UUID
+        -description: String
+        -priority: Int
+        -isCompleted: Boolean
+        -assignedUser: User?
+    }
+
+    class User {
+        -userId: UUID
+        -userName: String
+        -role: UserRole
+        +assignedTasks: MutableList<Task>
+    }
+
+    enum UserRole {
+        -PROJECT_LEADER
+        -TEAM_MEMBER
+        -MANAGER
+    }
+}
+
+package "com.example.hexagonal.port.in" {
+    interface ProjectUseCase {
+        +createProject(projectRequestDto: ProjectRequestDto?): ProjectResponseDto?
+        +getProjects(): List<ProjectResponseDto>?
+        +addTaskToProject(projectId: UUID?, taskDescription: String?): ProjectResponseDto?
+    }
+
+    interface TaskUseCase {
+        +createTask(taskRequestDto: TaskRequestDto?): TaskResponseDto?
+        +getAllTasks(): List<TaskResponseDto>?
+        +setTaskPriority(description: String?, priority: Int?): TaskResponseDto?
+        +completeTask(description: String?): TaskResponseDto?
+    }
+
+    interface UserTaskUseCase {
+        +assignTaskToUser(userName: String?, taskRequestDto: TaskRequestDto?): TaskResponseDto?
+    }
+
+    interface UserUseCase {
+        +createUser(userRequestDto: UserRequestDto?): UserResponseDto?
+        +getAllUsers(): List<UserResponseDto>?
+        +getUserTasks(userName: String?): List<TaskResponseDto>?
+    }
+}
+
+package "com.example.hexagonal.port.out" {
+    interface ProjectRepositoryPort {
+        +saveProject(project: ProjectEntity): ProjectEntity
+        +getProjectById(projectId: UUID): ProjectEntity?
+        +allProjects: MutableMap<UUID, ProjectEntity>
+    }
+
+    interface TaskRepositoryPort {
+        +saveTask(task: TaskEntity): TaskEntity
+        +allTasks: List<TaskEntity>
+    }
+
+    interface UserRepositoryPort {
+        +getUserByUsername(username: String?): UserEntity?
+        +saveUser(userEntity: UserEntity): UserEntity
+        +allUsers: List<UserEntity>
+    }
+
+    interface TransactionalPort {
+        +beginTransaction()
+        +commitTransaction()
+        +rollbackTransaction()
+    }
+}
+
+package "com.example.hexagonal.adapter.out.persistence.model" {
+    class ProjectEntity {
+        -projectId: UUID
+        -name: String
+        +tasks: MutableList<Task>
+    }
+
+    class TaskEntity {
+        -description: String
+        +priority: Int
+        +isCompleted: Boolean
+        +assignedUser: User?
+    }
+
+    class UserEntity {
+        -userName: String
+        -role: UserRole
+        +assignedTasks: MutableList<Task>
+    }
+}
+
+ProjectControllerAdapter --|> ProjectUseCase
+TaskControllerAdapter --|> TaskUseCase
+UserControllerAdapter --|> UserUseCase
+UserTaskControllerAdapter --|> UserTaskUseCase
+
+ProjectService --|> ProjectRepositoryPort
+TaskService --|> TaskRepositoryPort
+UserService --|> UserRepositoryPort
+UserTaskService --|> UserRepositoryPort
+UserTaskService --|> TaskRepositoryPort
+
+ProjectService --> InsufficientPermissionException
+UserService --> InsufficientPermissionException
+
+UserTaskService --> TaskEntity
+UserTaskService --> UserEntity
+UserTaskService --> TaskResponseDto
+
+MapperFunctions --> ProjectEntity
+MapperFunctions --> TaskEntity
+MapperFunctions --> UserEntity
+MapperFunctions --> Project
+MapperFunctions --> Task
+MapperFunctions --> User
+
+ProjectUseCase --> ProjectRequestDto
+ProjectUseCase --> ProjectResponseDto
+TaskUseCase --> TaskRequestDto
+TaskUseCase --> TaskResponseDto
+UserUseCase --> UserRequestDto
+UserUseCase --> UserResponseDto
+
+UserTaskUseCase --> TaskRequestDto
+UserTaskUseCase --> TaskResponseDto
+
+ProjectRepositoryPort --> ProjectEntity
+TaskRepositoryPort --> TaskEntity
+UserRepositoryPort --> UserEntity
+User --> UserRole
+
+SpringTransactionalAdapter --|> TransactionalPort
+
+@enduml
